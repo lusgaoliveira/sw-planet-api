@@ -8,12 +8,12 @@ import static com.example.sw_planet_api.common.PlanetConstants.PLANET;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -105,18 +105,22 @@ public class PlanetServiceTest {
     }
 
     @Test
-    public void listPlanets_RetunsAllPlanets() {
-        List<Planet> planets = new ArrayList<>() {{
-            add(PLANET);
-        }};
-        Example<Planet> query = QueryBuilder.makeQuery(new Planet(PLANET.getTerrain(), PLANET.getClimate()));
-        when(planetRepository.findAll(query)).thenReturn(planets);
+    void listPlanets_UsesCorrectExample() {
+        when(planetRepository.findAll(any()))
+                .thenReturn(List.of(PLANET));
 
-        List<Planet> sut = planetService.list(PLANET.getTerrain(), PLANET.getClimate());
-        assertThat(sut).isNotEmpty();
-        assertThat(sut).hasSize(1);
-        assertEquals(PLANET, sut.getFirst());
+        ArgumentCaptor<Example<Planet>> captor =
+                ArgumentCaptor.forClass(Example.class);
+
+        planetService.list(PLANET.getTerrain(), PLANET.getClimate());
+
+        verify(planetRepository).findAll(captor.capture());
+
+        Planet probe = captor.getValue().getProbe();
+        assertEquals(PLANET.getTerrain(), probe.getTerrain());
+        assertEquals(PLANET.getClimate(), probe.getClimate());
     }
+
 
     @Test
     public void listPlanets_ReturnsNoPlanets() {
