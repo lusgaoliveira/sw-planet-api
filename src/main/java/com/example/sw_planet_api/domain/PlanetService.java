@@ -27,9 +27,11 @@ public class PlanetService {
     }
 
     public List<Planet> list(String terrain, String climate) {
-        Example<Planet> query = QueryBuilder.makeQuery(new Planet(terrain, climate));
+        Planet probe = new Planet(null, climate, terrain);
+        Example<Planet> query = QueryBuilder.makeQuery(probe);
         return planetRepository.findAll(query);
     }
+
 
     public void remove(Long id) {
         planetRepository.deleteById(id);
